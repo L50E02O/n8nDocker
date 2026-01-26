@@ -1,32 +1,37 @@
 FROM n8nio/n8n:latest
 
+# Cambiar a root para instalar dependencias
 USER root
 
-# Instalar dependencias adicionales
-RUN apk add --no-cache \
+# Actualizar apk e instalar dependencias
+RUN apk update && \
+    apk add --no-cache \
     git \
     python3 \
     py3-pip \
     bash \
-    curl
+    curl \
+    && rm -rf /var/cache/apk/*
 
 # Instalar dependencias de Python
-RUN pip3 install --no-cache-dir requests
+RUN python3 -m pip install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir requests
 
 # Crear directorios necesarios
 RUN mkdir -p /scripts /config /repo /logs && \
     chown -R node:node /scripts /config /repo /logs
 
-# Copiar scripts (siempre existe)
+# Copiar scripts
 COPY --chown=node:node scripts/ /scripts/
 
-# Copiar config (debe existir ahora)
+# Copiar configuración
 COPY --chown=node:node config/ /config/
 
 # Dar permisos de ejecución
-RUN chmod +x /scripts/*.py 2>/dev/null || true && \
-    chmod +x /scripts/*.sh 2>/dev/null || true
+RUN find /scripts -type f -name "*.py" -exec chmod +x {} \; && \
+    find /scripts -type f -name "*.sh" -exec chmod +x {} \;
 
+# Volver al usuario node por seguridad
 USER node
 
 # Variables de entorno
