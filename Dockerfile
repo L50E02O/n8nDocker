@@ -1,38 +1,23 @@
-# Usar imagen base de Alpine con Node.js
-FROM node:18-alpine
+# Usar la imagen oficial de n8n como base
+FROM n8nio/n8n:1.23.1
 
-# Cambiar a root para instalar todo
+# Cambiar a root para instalar dependencias adicionales
 USER root
 
-# Instalar dependencias del sistema
-RUN apk update && \
-    apk add --no-cache \
+# Instalar git, python y otras dependencias
+RUN apk add --no-cache \
     git \
     python3 \
     py3-pip \
     bash \
-    curl \
-    openssl \
-    ca-certificates \
-    tini \
-    tzdata \
-    && rm -rf /var/cache/apk/*
+    curl
 
-# Instalar n8n globalmente
-RUN npm install -g n8n
-
-# Instalar dependencias de Python (--break-system-packages es seguro en contenedores)
+# Instalar requests para Python (--break-system-packages es seguro en contenedores)
 RUN pip3 install --no-cache-dir --break-system-packages requests
 
-# Crear usuario node si no existe
-RUN if ! id -u node > /dev/null 2>&1; then \
-    addgroup -g 1000 node && \
-    adduser -u 1000 -G node -s /bin/sh -D node; \
-    fi
-
 # Crear directorios necesarios
-RUN mkdir -p /scripts /config /repo /logs /home/node/.n8n && \
-    chown -R node:node /scripts /config /repo /logs /home/node/.n8n
+RUN mkdir -p /scripts /config /repo /logs && \
+    chown -R node:node /scripts /config /repo /logs
 
 # Copiar scripts
 COPY --chown=node:node scripts/ /scripts/
@@ -40,24 +25,17 @@ COPY --chown=node:node scripts/ /scripts/
 # Copiar configuración
 COPY --chown=node:node config/ /config/
 
-# Dar permisos de ejecución
-RUN find /scripts -type f -name "*.py" -exec chmod +x {} \; 2>/dev/null || true && \
-    find /scripts -type f -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+# Dar permisos de ejecución a los scripts
+RUN chmod +x /scripts/*.py 2>/dev/null || true && \
+    chmod +x /scripts/*.sh 2>/dev/null || true
 
-# Volver al usuario node
+# Volver al usuario node por seguridad
 USER node
 
-# Variables de entorno
+# Variables de entorno adicionales
 ENV N8N_LOG_LEVEL=info \
     GENERIC_TIMEZONE=America/Bogota \
-    TZ=America/Bogota \
-    NODE_ENV=production
+    TZ=America/Bogota
 
-EXPOSE 5678
-
-WORKDIR /home/node
-
-# Usar tini como init y ejecutar n8n correctamente
-ENTRYPOINT ["tini", "--"]
-
-CMD ["n8n", "start"]
+# El puerto y CMD ya están definidos en la imagen base n8nio/n8n
+# No necesitamos redefinirlos
