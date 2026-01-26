@@ -1,0 +1,53 @@
+# Directorios y archivos de Docker
+volumes/
+n8n_data/
+postgres_data/
+
+# Repositorio Git (cada usuario tendrá el suyo)
+repo/
+
+# Archivos de configuración con datos sensibles
+config/config.json
+.env
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
