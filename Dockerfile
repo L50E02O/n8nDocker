@@ -57,7 +57,7 @@ EXPOSE 5678
 
 WORKDIR /home/node
 
-# Usar tini como init
+# Usar tini como init y ejecutar n8n correctamente
 ENTRYPOINT ["tini", "--"]
 
-CMD ["n8n"]
+CMD ["n8n", "start"]
