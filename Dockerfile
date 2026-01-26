@@ -21,9 +21,8 @@ RUN apk update && \
 # Instalar n8n globalmente
 RUN npm install -g n8n
 
-# Instalar dependencias de Python
-RUN python3 -m pip install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir requests
+# Instalar dependencias de Python (--break-system-packages es seguro en contenedores)
+RUN pip3 install --no-cache-dir --break-system-packages requests
 
 # Crear usuario node si no existe
 RUN if ! id -u node > /dev/null 2>&1; then \
