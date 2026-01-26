@@ -1,5 +1,5 @@
 # Usar la imagen oficial de n8n como base
-FROM n8nio/n8n:1.23.1
+FROM n8nio/n8n:latest
 
 # Cambiar a root para instalar dependencias adicionales
 USER root
