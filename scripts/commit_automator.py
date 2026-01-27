@@ -123,6 +123,7 @@ class GitCommitAutomator:
     def init_repo(self) -> bool:
         """
         Inicializa el repositorio Git si no existe.
+        Si hay configuración de repositorio remoto, lo clona automáticamente.
 
         Returns:
             True si el repositorio está listo
@@ -132,12 +133,50 @@ class GitCommitAutomator:
             self.repo_path.mkdir(parents=True, exist_ok=True)
 
         git_dir = self.repo_path / ".git"
+        
+        # Si no existe .git, intentar clonar o inicializar
         if not git_dir.exists():
-            print("INFO: Inicializando repositorio Git")
-            success, output = self._run_command(["git", "init"])
-            if not success:
-                print(f"ERROR: Error al inicializar Git: {output}")
-                return False
+            github_repo_owner = self.config.get("github_repo_owner")
+            github_repo_name = self.config.get("github_repo_name")
+            github_token = self.config.get("github_token")
+            
+            # Intentar clonar si hay configuración de repo remoto
+            if github_repo_owner and github_repo_name:
+                print(f"INFO: Intentando clonar repositorio {github_repo_owner}/{github_repo_name}")
+                
+                # Construir URL con token si está disponible
+                if github_token:
+                    clone_url = f"https://{github_token}@github.com/{github_repo_owner}/{github_repo_name}.git"
+                else:
+                    clone_url = f"https://github.com/{github_repo_owner}/{github_repo_name}.git"
+                
+                # Clonar en directorio temporal y mover contenido
+                temp_dir = self.repo_path.parent / "temp_clone"
+                success, output = self._run_command(
+                    ["git", "clone", clone_url, str(temp_dir)],
+                    cwd=self.repo_path.parent
+                )
+                
+                if success:
+                    print("OK: Repositorio clonado exitosamente")
+                    # Mover contenido de temp_dir a repo_path
+                    import shutil
+                    for item in temp_dir.iterdir():
+                        shutil.move(str(item), str(self.repo_path / item.name))
+                    temp_dir.rmdir()
+                else:
+                    print(f"ADVERTENCIA: No se pudo clonar: {output}")
+                    print("INFO: Inicializando repositorio vacío")
+                    success, output = self._run_command(["git", "init"])
+                    if not success:
+                        print(f"ERROR: Error al inicializar Git: {output}")
+                        return False
+            else:
+                print("INFO: Inicializando repositorio Git vacío")
+                success, output = self._run_command(["git", "init"])
+                if not success:
+                    print(f"ERROR: Error al inicializar Git: {output}")
+                    return False
 
         return self.setup_git_config()
 

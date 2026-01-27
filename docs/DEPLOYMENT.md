@@ -113,7 +113,10 @@ N8N_ENCRYPTION_KEY=genera-clave-aleatoria-larga-aqui-abc123xyz789
 ```bash
 GIT_USER_NAME=Tu Nombre Completo
 GIT_USER_EMAIL=tu-email@ejemplo.com
+GITHUB_TOKEN=ghp_tu_token_github_con_permisos_repo
 ```
+
+**IMPORTANTE**: Aunque uses commits directos (no PRs), necesitas el `GITHUB_TOKEN` para que el script pueda clonar y hacer push al repositorio automáticamente.
 
 #### Variables Adicionales (Solo si usas Modo PR):
 
@@ -125,19 +128,23 @@ GITHUB_TOKEN=ghp_tu_token_github_con_permisos_repo
 
 ---
 
-### Paso 5: Configurar Volumen Persistente
+### Paso 5: Configurar Volumen Persistente (CRÍTICO)
 
-Para mantener tus workflows de n8n guardados:
+**IMPORTANTE**: Sin esto, cada deploy borrará tus workflows y configuración.
+
+Para mantener tus workflows de n8n guardados entre deploys:
 
 1. En Railway → Tu servicio → **"Settings"**
 2. Scroll hasta **"Volumes"**
 3. Click en **"Add Volume"**
 4. Configuración:
- - **Mount Path**: `/home/node/.n8n`
- - **Size**: 1 GB (suficiente)
+   - **Mount Path**: `/home/node/.n8n`
+   - **Size**: 1 GB (suficiente)
 5. Click **"Add"**
 
 Railway reiniciará el servicio para montar el volumen.
+
+**Nota sobre el repositorio Git**: El directorio `/repo` NO necesita volumen persistente porque el script ahora clona automáticamente el repositorio en cada inicio si no existe. Solo necesitas configurar las variables de entorno correctamente (ver Paso 4).
 
 ---
 
@@ -177,39 +184,48 @@ Railway reiniciará el servicio para montar el volumen.
 
 ### Paso 9: Configurar el Repositorio Target
 
-Ahora necesitas configurar el repositorio donde se harán los commits:
+**IMPORTANTE**: El script ahora clona automáticamente el repositorio en cada inicio.
 
-#### Opción A: Dentro del contenedor de Railway
+#### Configuración Automática (Recomendado)
 
-1. En Railway → Tu servicio → Pestaña **"Deploy Logs"**
-2. Click en **"⋮"** (tres puntos) → **"Shell"** o usa Railway CLI
+Solo necesitas actualizar `config/config.json` con la información de tu repositorio:
+
+1. En Railway → Tu servicio → **"Shell"** o usa Railway CLI
+2. Edita el archivo de configuración:
 
 ```bash
-# Conectar vía Railway CLI (instalar si no lo tienes)
+# Conectar vía Railway CLI
 railway login
 railway link
 railway run bash
 
-# Dentro del contenedor, configurar el repo
-cd /repo
-git init
-git config user.name "Tu Nombre"
-git config user.email "tu-email@ejemplo.com"
-git remote add origin https://github.com/TU_USUARIO/daily-commits.git
-
-# Crear commit inicial
-echo "# Daily Commits Repository" > README.md
-git add README.md
-git commit -m "Initial commit"
-git branch -M main
-
-# Push inicial (necesitarás tu token de GitHub)
-git push -u origin main
-# Usuario: tu_usuario_github
-# Password: ghp_tu_token_github
+# Editar config.json
+cat > /config/config.json << 'EOF'
+{
+  "commits_per_day": 1,
+  "repo_path": "/repo",
+  "commit_message_template": "Commit automático del {date}",
+  "auto_push": true,
+  "timezone": "America/Bogota",
+  "github_repo_owner": "TU_USUARIO",
+  "github_repo_name": "daily-commits"
+}
+EOF
 ```
 
-#### Opción B: Clonar repo existente
+3. **Asegúrate de tener las variables de entorno configuradas**:
+   - `GITHUB_TOKEN`: Token con permisos `repo`
+   - `GIT_USER_NAME`: Tu nombre
+   - `GIT_USER_EMAIL`: Tu email
+
+4. El script automáticamente:
+   - Clonará el repositorio si no existe
+   - Configurará Git con tus credenciales
+   - Usará el token para autenticación
+
+#### Configuración Manual (Solo si lo prefieres)
+
+Si prefieres configurar manualmente:
 
 ```bash
 cd /repo
@@ -416,6 +432,75 @@ Railway → Project → Usage
 - Optimiza la frecuencia del cron si es necesario
 - Considera plan Developer ($5/mes + uso)
 ```
+
+---
+
+## Problema: Se Pierde Todo en Cada Deploy
+
+### ¿Por qué pasa esto?
+
+Los contenedores Docker son **efímeros** - cada deploy crea un contenedor nuevo desde cero. Sin configuración de persistencia, pierdes:
+
+- Workflows de n8n
+- Credenciales guardadas
+- Configuración del repositorio Git
+- Historial de ejecuciones
+
+### Solución Completa:
+
+#### 1. Volumen Persistente para n8n (OBLIGATORIO)
+
+En Railway → Settings → Volumes → Add Volume:
+- **Mount Path**: `/home/node/.n8n`
+- **Size**: 1 GB
+
+Esto preserva tus workflows entre deploys.
+
+#### 2. Configuración Automática del Repositorio Git
+
+El script ahora maneja esto automáticamente. Solo necesitas:
+
+**Variables de entorno en Railway**:
+```bash
+GITHUB_TOKEN=ghp_tu_token_con_permisos_repo
+GIT_USER_NAME=Tu Nombre
+GIT_USER_EMAIL=tu-email@ejemplo.com
+```
+
+**Configuración en `/config/config.json`**:
+```json
+{
+  "github_repo_owner": "tu_usuario",
+  "github_repo_name": "nombre_repo"
+}
+```
+
+En cada inicio, el script:
+1. Verifica si `/repo/.git` existe
+2. Si no existe, clona el repositorio automáticamente usando el token
+3. Configura Git con tus credenciales
+4. Está listo para hacer commits
+
+#### 3. Verificar que Funciona
+
+Después de configurar:
+
+```bash
+# Conectar al contenedor
+railway run bash
+
+# Verificar que el volumen está montado
+ls -la /home/node/.n8n
+
+# Verificar que el repo se clonó
+cd /repo
+git remote -v
+git status
+```
+
+Deberías ver:
+- Archivos en `/home/node/.n8n` (workflows)
+- Repositorio Git configurado en `/repo`
 
 ---
 

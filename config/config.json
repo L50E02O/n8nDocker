@@ -16,7 +16,7 @@
   "timezone": "America/Bogota",
   
   "_comment_pr_mode": "Configuración para automatización de Pull Requests",
-  "use_pr_workflow": false,
+  "use_pr_workflow": true,
   
   "_comment_token": "Se sobrescribe con GITHUB_TOKEN si existe",
   "github_token": "",

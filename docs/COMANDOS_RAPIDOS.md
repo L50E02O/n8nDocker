@@ -71,6 +71,19 @@ git push -u origin main
 
 ## Pruebas y Verificación
 
+### Verificar Persistencia (IMPORTANTE)
+
+```bash
+# Verificar que el volumen de n8n está montado
+railway run bash -c "ls -la /home/node/.n8n"
+
+# Verificar que el repositorio se clonó automáticamente
+railway run bash -c "cd /repo && git remote -v"
+
+# Verificar configuración de Git
+railway run bash -c "cd /repo && git config --list | grep user"
+```
+
 ### Verificar Configuración
 
 ```bash

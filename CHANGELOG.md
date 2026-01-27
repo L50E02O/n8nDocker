@@ -62,6 +62,30 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.1.0] - 2026-01-26
+
+### Agregado
+
+- Clonación automática del repositorio Git en cada inicio del contenedor
+- Documentación completa sobre persistencia de datos (`docs/PERSISTENCIA.md`)
+- Configuración automática del repositorio usando variables de entorno
+- Soporte para `github_repo_owner` y `github_repo_name` en `config.json`
+
+### Cambiado
+
+- Actualizada función `init_repo()` en `commit_automator.py` para clonar automáticamente
+- Mejorada documentación de despliegue con sección sobre persistencia
+- Actualizado `.env.example` para marcar `GITHUB_TOKEN` como obligatorio
+- README principal ahora incluye enlace a guía de persistencia
+
+### Arreglado
+
+- Problema de pérdida de datos del repositorio Git en cada deploy
+- Configuración del repositorio Git ahora persiste correctamente
+- Mejora en la experiencia de usuario al evitar configuración manual repetitiva
+
+---
+
 ## [Unreleased]
 
 ### Planeado

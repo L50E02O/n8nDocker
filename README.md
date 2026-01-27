@@ -73,7 +73,8 @@ git push -u origin main
 | Documento | Descripción |
 |-----------|-------------|
 | [Inicio Rápido](docs/QUICK_START.md) | Configuración paso a paso en 10 minutos |
-| [Configuración del Workflow](docs/CONFIGURACION_WORKFLOW.md) | **Guía completa para configurar tu workflow en Railway (UTC-5)** |
+| [Persistencia de Datos](docs/PERSISTENCIA.md) | **IMPORTANTE: Evita perder datos en cada deploy** |
+| [Configuración del Workflow](docs/CONFIGURACION_WORKFLOW.md) | Guía completa para configurar tu workflow en Railway (UTC-5) |
 | [Despliegue en Railway](docs/RAILWAY_DEPLOY.md) | Guía detallada de despliegue en la nube |
 | [Configuración Avanzada](docs/CONFIGURATION.md) | Personalización completa del sistema |
 | [Modo Pull Request](docs/PR_MODE.md) | Automatización de PRs para más contribuciones |
