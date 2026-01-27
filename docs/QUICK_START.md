@@ -74,7 +74,7 @@ GIT_USER_EMAIL=tu-email@ejemplo.com
 1. Abre la URL de Railway en tu navegador
 2. Login con `admin` / tu password
 3. **Workflows** → **Import from File**
-4. Selecciona `n8n-workflow.json`
+4. Selecciona `workflows/n8n-workflow.json`
 5. **Activa** el workflow (toggle verde)
 
 ### 7⃣ Configurar Repositorio Target

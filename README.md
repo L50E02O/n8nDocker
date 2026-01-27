@@ -59,7 +59,7 @@ git push -u origin main
 # Ver docs/QUICK_START.md para la lista completa
 
 # 5. Acceder a n8n e importar workflow
-# Railway te dará una URL → Importa n8n-workflow.json
+# Railway te dará una URL → Importa workflows/n8n-workflow.json
 ```
 
 **Guía completa**: [docs/QUICK_START.md](docs/QUICK_START.md)
@@ -124,7 +124,7 @@ Hace commits directamente a la rama principal.
 
 - **Contribuciones**: 1 por día
 - **Configuración**: Simple
-- **Workflow**: `n8n-workflow.json`
+- **Workflow**: `workflows/n8n-workflow.json`
 
 ### Modo 2: Pull Requests Automáticos
 
@@ -132,7 +132,7 @@ Crea ramas, PRs y los mergea automáticamente.
 
 - **Contribuciones**: 2+ por día (commit + merge)
 - **Configuración**: Requiere token con permisos `repo`
-- **Workflow**: `n8n-workflow-pr.json`
+- **Workflow**: `workflows/n8n-workflow-pr.json`
 
 **Guía completa**: [docs/PR_MODE.md](docs/PR_MODE.md)
 
@@ -160,8 +160,8 @@ commitDiario/
  PR_MODE.md # Modo Pull Request
  TROUBLESHOOTING.md # Solución de problemas
  workflows/ # Workflows de n8n
- n8n-workflow.json # Workflow de commits directos
- n8n-workflow-pr.json # Workflow de Pull Requests
+   n8n-workflow.json # Workflow de commits directos
+   n8n-workflow-pr.json # Workflow de Pull Requests
 ```
 
 ---

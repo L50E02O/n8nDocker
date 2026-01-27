@@ -49,7 +49,7 @@ GITHUB_TOKEN=ghp_tu_token_completo_aqui
 
 En n8n:
 1. **Workflows** → **Import from File**
-2. Selecciona `n8n-workflow-pr.json`
+2. Selecciona `workflows/n8n-workflow-pr.json`
 3. **Desactiva** el workflow anterior
 4. **Activa** este nuevo workflow
 

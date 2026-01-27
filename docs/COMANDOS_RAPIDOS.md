@@ -308,10 +308,10 @@ git push
 
 ```bash
 # Editar workflow localmente
-notepad n8n-workflow.json
+notepad workflows\n8n-workflow.json
 
 # Push
-git add n8n-workflow.json
+git add workflows\n8n-workflow.json
 git commit -m "Update n8n workflow"
 git push
 
@@ -367,7 +367,7 @@ git add config/config.json
 git commit -m "Enable PR workflow mode"
 git push
 
-# 4. En n8n, importar n8n-workflow-pr.json
+# 4. En n8n, importar workflows/n8n-workflow-pr.json
 ```
 
 ### De Pull Requests a Commits Directos
@@ -382,7 +382,7 @@ git add config/config.json
 git commit -m "Disable PR workflow mode"
 git push
 
-# 3. En n8n, importar n8n-workflow.json
+# 3. En n8n, importar workflows/n8n-workflow.json
 ```
 
 ---

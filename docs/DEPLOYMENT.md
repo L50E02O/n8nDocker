@@ -175,8 +175,8 @@ Railway reiniciará el servicio para montar el volumen.
 1. En n8n, ve a **"Workflows"** (menú lateral)
 2. Click en **"Import from File"**
 3. Selecciona el archivo:
- - `n8n-workflow.json` (para commits directos)
- - `n8n-workflow-pr.json` (para PRs automáticos)
+ - `workflows/n8n-workflow.json` (para commits directos)
+ - `workflows/n8n-workflow-pr.json` (para PRs automáticos)
 4. El workflow aparecerá en tu lista
 5. Ábrelo y **activa el workflow** (toggle en la esquina superior derecha debe estar verde )
 
@@ -352,7 +352,7 @@ Si todo está , ¡tu sistema está listo!
  - Copia el token
 
 4. **Importa el workflow de PRs en n8n:**
- - Importa `n8n-workflow-pr.json` 
+   - Importa `workflows/n8n-workflow-pr.json`
  - Activa el workflow
 
 5. **Prueba desde Railway:**

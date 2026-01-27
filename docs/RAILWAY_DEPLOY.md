@@ -170,7 +170,7 @@ git push
 ### 4. Importa el workflow:
 
 1. En n8n → **Workflows** → **Import from File**
-2. Selecciona `n8n-workflow.json` o `n8n-workflow-pr.json`
+2. Selecciona `workflows/n8n-workflow.json` o `workflows/n8n-workflow-pr.json`
 3. **Activa** el workflow (toggle verde)
 
 ### 5. Configura el repositorio Git:
