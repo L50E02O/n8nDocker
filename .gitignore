@@ -1,14 +1,5 @@
-# Directorios y archivos de Docker
-volumes/
-n8n_data/
-postgres_data/
-
 # Repositorio Git (cada usuario tendrá el suyo)
 repo/
-
-# Archivos de configuración con datos sensibles
-config/config.json
-.env
 
 # Logs
 logs/
@@ -39,8 +30,18 @@ wheels/
 .installed.cfg
 *.egg
 
+# Variables de entorno con datos sensibles
+.env
+.env.local
+.env.*.local
+
 # Sistema operativo
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 *.swp
 *.swo
@@ -51,3 +52,16 @@ Thumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
+*.code-workspace
+
+# Railway
+.railway/
+
+# Archivos temporales
+*.tmp
+*.bak
+*.backup
+.cache/
+
+# Reglas cursor
+.cursorrules

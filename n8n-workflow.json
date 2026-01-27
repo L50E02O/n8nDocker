@@ -6,11 +6,12 @@
         "rule": {
           "interval": [
             {
-              "field": "hours",
-              "hoursInterval": 24
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
             }
           ]
-        }
+        },
+        "timezone": "America/Bogota"
       },
       "id": "cron-trigger",
       "name": "Schedule Trigger",
@@ -20,7 +21,8 @@
         240,
         300
       ],
-      "webhookId": null
+      "webhookId": null,
+      "notes": "Ejecuta diariamente a las 9:00 AM (UTC-5)"
     },
     {
       "parameters": {

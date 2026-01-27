@@ -42,7 +42,9 @@ class GitHubPRAutomator:
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """
-        Carga la configuración desde un archivo JSON.
+        Carga la configuración desde un archivo JSON y variables de entorno.
+        
+        Las variables de entorno tienen prioridad sobre el config.json.
 
         Args:
             config_path: Ruta al archivo de configuración
@@ -50,15 +52,47 @@ class GitHubPRAutomator:
         Returns:
             Diccionario con la configuración
         """
+        # Configuración por defecto
+        config = {
+            "commits_per_day": 1,
+            "repo_path": "/repo",
+            "commit_message_template": "Commit automático del {date}",
+            "git_user_name": "PR Bot",
+            "git_user_email": "bot@example.com",
+            "auto_push": True,
+            "timezone": "America/Bogota",
+            "use_pr_workflow": True,
+            "merge_method": "squash",
+            "auto_cleanup_branch": True
+        }
+        
+        # Cargar desde config.json si existe
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                file_config = json.load(f)
+                config.update(file_config)
         except FileNotFoundError:
             print(f"⚠️  Archivo de configuración no encontrado: {config_path}")
-            return {}
+            print("📝 Usando configuración por defecto y variables de entorno")
         except json.JSONDecodeError as e:
             print(f"❌ Error al parsear el archivo de configuración: {e}")
-            sys.exit(1)
+            print("📝 Usando configuración por defecto y variables de entorno")
+        
+        # Sobrescribir con variables de entorno (tienen prioridad)
+        env_mappings = {
+            "GIT_USER_NAME": "git_user_name",
+            "GIT_USER_EMAIL": "git_user_email",
+            "GITHUB_TOKEN": "github_token",
+            "GENERIC_TIMEZONE": "timezone",
+        }
+        
+        for env_var, config_key in env_mappings.items():
+            env_value = os.getenv(env_var)
+            if env_value:
+                config[config_key] = env_value
+                print(f"✅ Variable de entorno {env_var} cargada")
+        
+        return config
 
     def _run_command(self, command: list, cwd: Optional[Path] = None) -> Tuple[bool, str]:
         """
