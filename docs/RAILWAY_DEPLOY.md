@@ -1,220 +1,139 @@
-# Guía Rápida de Despliegue en Railway
+# Guía de Despliegue de n8n en Railway
 
-## Antes de Desplegar
+Esta guía te muestra cómo desplegar n8n en Railway de forma rápida y sencilla.
 
-### 1⃣ Verifica que estos archivos existan:
+## Requisitos Previos
 
-```bash
-# En tu terminal, verifica:
-dir scripts # Debe mostrar los archivos .py
-dir config # Debe mostrar config.json
-type Dockerfile # Debe mostrar el contenido
-```
-
-### 2⃣ Asegúrate de hacer commit de TODO:
-
-```bash
-# Verifica el estado
-git status
-
-# Si hay archivos sin agregar:
-git add .
-git commit -m "Fix: Agregar archivos de configuración"
-git push
-```
+- Cuenta de GitHub
+- Cuenta en [Railway](https://railway.app/) (gratis)
+- Repositorio de este proyecto en GitHub
 
 ---
 
 ## Pasos de Despliegue
 
-### Paso 1: Push a GitHub
+### Paso 1: Preparar el Repositorio
 
 ```bash
-# Si no has inicializado git:
+# Si aún no has subido el proyecto a GitHub:
 git init
 git add .
-git commit -m "Initial commit: Sistema de commits diarios"
-
-# Crear repo en GitHub y conectar:
-git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
+git commit -m "Initial commit: n8n Docker para Railway"
+git remote add origin https://github.com/TU_USUARIO/n8nDocker.git
 git branch -M main
 git push -u origin main
 ```
 
-### Paso 2: Desplegar en Railway
+### Paso 2: Crear Proyecto en Railway
 
-1. Ve a https://railway.app/
-2. **Login con GitHub**
-3. Click **"New Project"**
-4. Selecciona **"Deploy from GitHub repo"**
-5. Selecciona tu repositorio
-6. **Espera** a que Railway detecte el Dockerfile
+1. Ve a **https://railway.app/**
+2. Click en **"Start a New Project"** o **"Login"**
+3. **Regístrate con GitHub** (recomendado para deployment automático)
+4. Autoriza Railway para acceder a tus repositorios
+5. Click **"New Project"**
+6. Selecciona **"Deploy from GitHub repo"**
+7. Selecciona tu repositorio `n8nDocker`
+8. Railway detectará automáticamente el `Dockerfile` y comenzará a desplegar
 
-### Paso 3: Configurar Variables (IMPORTANTE)
+### Paso 3: Configurar Variables de Entorno
 
-Mientras se despliega, configura estas variables en Railway → Variables:
+Mientras se despliega, configura las variables en Railway:
+
+1. En Railway, ve a tu proyecto
+2. Click en el servicio (aparecerá automáticamente)
+3. Ve a la pestaña **"Variables"**
+4. Click en **"New Variable"** y agrega cada una:
+
+#### Variables Obligatorias:
 
 ```bash
-# Variables básicas (obligatorias)
+# Autenticación básica (OBLIGATORIO)
 N8N_BASIC_AUTH_ACTIVE=true
 N8N_BASIC_AUTH_USER=admin
-N8N_BASIC_AUTH_PASSWORD=TuPasswordSegura123
+N8N_BASIC_AUTH_PASSWORD=TuPasswordSegura123!
+
+# Clave de encriptación (OBLIGATORIO - mínimo 32 caracteres)
+N8N_ENCRYPTION_KEY=genera-clave-aleatoria-larga-aqui-abc123xyz789
+
+# Zona horaria
 GENERIC_TIMEZONE=America/Bogota
 TZ=America/Bogota
+
+# Nivel de logs
 N8N_LOG_LEVEL=info
-
-# Clave de encriptación (genera una aleatoria)
-N8N_ENCRYPTION_KEY=abc123xyz456def789ghi012jkl345mno
-
-# Configuración de Git
-GIT_USER_NAME=Tu Nombre Completo
-GIT_USER_EMAIL=tu-email@ejemplo.com
-
-# Solo si usas modo PR (opcional):
-GITHUB_TOKEN=ghp_tu_token_github
 ```
 
-### Paso 4: Agregar Volumen Persistente
+**Consejo**: Para generar `N8N_ENCRYPTION_KEY`, usa cualquier texto largo y aleatorio (mínimo 32 caracteres). Puedes usar un generador online o simplemente escribir caracteres aleatorios.
 
-1. Railway → Tu servicio → **Settings**
-2. Scroll a **"Volumes"**
-3. **Add Volume**:
- - Mount Path: `/home/node/.n8n`
- - Size: 1 GB
-4. Click **"Add"**
+### Paso 4: Configurar Volumen Persistente (Recomendado)
+
+**IMPORTANTE**: Sin esto, cada deploy borrará tus workflows y configuración.
+
+Para mantener tus workflows de n8n guardados entre deploys:
+
+1. En Railway → Tu servicio → **"Settings"**
+2. Scroll hasta **"Volumes"**
+3. Click **"Add Volume"**
+4. Configuración:
+   - **Mount Path**: `/home/node/.n8n`
+   - **Size**: `0.5 GB` (máximo en plan gratuito)
+5. Click **"Add"**
 
 Railway reiniciará el servicio automáticamente.
 
----
-
-## Errores Comunes y Soluciones
-
-### Error: "config: not found"
-
-**Causa**: El directorio `config/` no está en GitHub.
-
-**Solución**:
-```bash
-# Verifica que config.json existe
-cat config/config.json
-
-# Si no existe, créalo:
-mkdir -p config
-echo '{"commits_per_day":1}' > config/config.json
-
-# Haz commit y push:
-git add config/
-git commit -m "Add config directory"
-git push
-
-# En Railway, haz Redeploy
-```
-
-### Error: "scripts: not found"
-
-**Causa**: Los scripts no están en GitHub.
-
-**Solución**:
-```bash
-# Verifica que existen:
-ls scripts/
-
-# Si no están, haz:
-git add scripts/
-git commit -m "Add scripts directory"
-git push
-```
-
-### Error: "Build failed"
-
-**Causa**: El Dockerfile tiene errores o faltan archivos.
-
-**Solución**:
-1. Ve a Railway → **Deploy Logs**
-2. Lee el error completo
-3. Verifica que todos los archivos estén en GitHub:
- ```bash
- git ls-files
- # Debe mostrar: Dockerfile, scripts/, config/, etc.
- ```
-
-### Error: "Service crashed"
-
-**Causa**: Variables de entorno mal configuradas o faltantes.
-
-**Solución**:
-1. Ve a Railway → **Variables**
-2. Verifica que todas las variables obligatorias están configuradas
-3. Click **"Redeploy"**
+**Guía completa**: [PERSISTENCIA.md](PERSISTENCIA.md)
 
 ---
 
 ## Verificación Post-Despliegue
 
-### 1. Verifica que el servicio está corriendo:
+### 1. Verificar que el servicio está corriendo:
 
-- Railway → Tu servicio → Estado debe ser **"Active"** 
+- Railway → Tu servicio → Estado debe ser **"Active"** (verde)
 
-### 2. Obtén la URL:
+### 2. Obtener la URL:
 
 - Railway → Settings → **Domains**
 - Copia la URL (ej: `https://xxx.railway.app`)
+- O Railway generará una URL automáticamente
 
-### 3. Accede a n8n:
+### 3. Acceder a n8n:
 
 - Abre la URL en tu navegador
 - Login:
- - Usuario: `admin`
- - Password: La que pusiste en `N8N_BASIC_AUTH_PASSWORD`
+  - Usuario: `admin` (o el que configuraste en `N8N_BASIC_AUTH_USER`)
+  - Password: La que pusiste en `N8N_BASIC_AUTH_PASSWORD`
 
-### 4. Importa el workflow:
+### 4. Crear tu primer workflow:
 
-1. En n8n → **Workflows** → **Import from File**
-2. Selecciona `workflows/n8n-workflow.json` o `workflows/n8n-workflow-pr.json`
+1. En n8n, click **"Add workflow"**
+2. Crea tu workflow personalizado
 3. **Activa** el workflow (toggle verde)
+4. ¡Listo! Tu n8n está funcionando en Railway
 
-### 5. Configura el repositorio Git:
+---
 
-```bash
-# Conecta a Railway:
-railway login
-railway link # Selecciona tu proyecto
+## Repositorios Privados
 
-# Accede al contenedor:
-railway run bash
+### ¿Puedo hacer mi proyecto privado después de desplegarlo?
 
-# Configura el repo:
-cd /repo
-git init
-git config user.name "Tu Nombre"
-git config user.email "tu-email@ejemplo.com"
-git remote add origin https://github.com/TU_USUARIO/daily-commits.git
+**Respuesta**: **SÍ**, pero hay algunas consideraciones:
 
-# Crea commit inicial:
-echo "# Daily Commits" > README.md
-git add README.md
-git commit -m "Initial commit"
-git branch -M main
-git push -u origin main
-# Usuario: tu_usuario_github
-# Password: ghp_tu_token_github
-```
+✅ **Lo que funciona**:
+- El servicio seguirá desplegado en Railway
+- Railway seguirá teniendo acceso si ya autorizaste la Railway GitHub App
+- Los deploys automáticos seguirán funcionando
 
-### 6. Prueba manual:
+⚠️ **Qué puede pasar**:
+- Railway puede hacer un redeploy automático cuando detecte el cambio
+- Si no autorizaste acceso a repositorios privados, puede fallar
 
-```bash
-# Ejecuta el script manualmente:
-railway run python3 /scripts/commit_automator.py
+### Cómo verificar permisos de Railway:
 
-# Deberías ver:
-# Commit realizado exitosamente
-# Push realizado exitosamente
-```
-
-### 7. Verifica en GitHub:
-
-- Ve a tu repositorio en GitHub
-- Debes ver el commit que acabas de hacer 
+1. Ve a GitHub → **Settings** → **Applications** → **Installed GitHub Apps**
+2. Busca **Railway**
+3. Verifica que tenga acceso a **"All repositories"** o al menos a tu repositorio privado
+4. Si no tiene acceso, click en **"Configure"** y otorga permisos
 
 ---
 
@@ -224,16 +143,52 @@ Antes de dar por terminado, verifica:
 
 - [ ] Servicio en Railway está **"Active"**
 - [ ] Puedes acceder a n8n con la URL de Railway
-- [ ] Workflow está importado y **activado** (toggle verde)
+- [ ] Login funciona con las credenciales configuradas
 - [ ] Variables de entorno están configuradas
 - [ ] Volumen persistente está montado (`/home/node/.n8n`)
-- [ ] Repositorio Git está configurado en `/repo`
-- [ ] Prueba manual funcionó correctamente
-- [ ] Commit apareció en GitHub
+- [ ] Puedes crear y activar workflows en n8n
 
 ---
 
-## Si Algo Sale Mal
+## Solución de Problemas
+
+### El servicio no inicia:
+
+**Síntomas**: Estado "Crashed" o "Error"
+
+**Solución**:
+1. Ve a **Deploy Logs** para ver el error
+2. Verifica que el `Dockerfile` esté correcto
+3. Verifica que todas las variables obligatorias estén configuradas:
+   - `N8N_BASIC_AUTH_ACTIVE`
+   - `N8N_BASIC_AUTH_USER`
+   - `N8N_BASIC_AUTH_PASSWORD`
+   - `N8N_ENCRYPTION_KEY`
+4. Click en **"Redeploy"** después de corregir
+
+### No puedo acceder a n8n:
+
+**Síntomas**: Error 401 o página en blanco
+
+**Solución**:
+1. Verifica que `N8N_BASIC_AUTH_ACTIVE=true`
+2. Verifica que `N8N_BASIC_AUTH_USER` y `N8N_BASIC_AUTH_PASSWORD` estén configurados
+3. Usa las credenciales exactas que configuraste
+4. Verifica la URL en Railway → Settings → Domains
+
+### Los workflows se pierden después de redeploy:
+
+**Síntomas**: Workflows desaparecen después de cada deploy
+
+**Solución**:
+1. Verifica que el volumen esté montado: Railway → Settings → Volumes
+2. Debe aparecer: `/home/node/.n8n` → 0.5 GB
+3. Si no está, agrégalo siguiendo el Paso 4
+4. Ver guía completa: [PERSISTENCIA.md](PERSISTENCIA.md)
+
+---
+
+## Comandos Útiles
 
 ### Ver logs en tiempo real:
 
@@ -263,8 +218,15 @@ railway run bash
 
 ## ¡Todo Listo!
 
-Si completaste todos los pasos del checklist, tu sistema está funcionando correctamente.
+Si completaste todos los pasos del checklist, tu n8n está funcionando correctamente en Railway.
 
-Los commits se generarán automáticamente cada 24 horas según el cron configurado en n8n.
+Puedes comenzar a crear tus workflows de automatización. 🎉
 
-**Verifica mañana tu perfil de GitHub para ver la primera contribución automática.** 
+---
+
+## Enlaces Útiles
+
+- [Documentación oficial de Railway](https://docs.railway.app/)
+- [Documentación oficial de n8n](https://docs.n8n.io/)
+- [Guía de Persistencia](PERSISTENCIA.md)
+- [Solución de Problemas](TROUBLESHOOTING.md)

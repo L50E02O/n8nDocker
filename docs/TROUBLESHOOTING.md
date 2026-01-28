@@ -1,393 +1,272 @@
 # Solución de Problemas
 
-Guía completa para resolver errores comunes.
+Guía completa para resolver errores comunes al desplegar n8n en Railway.
 
 ## Diagnóstico General
 
 Antes de buscar un error específico, verifica:
 
-```bash
-# 1. Estado del servicio en Railway
-Railway → Tu servicio → Debe estar "Active" (verde)
+1. **Estado del servicio en Railway**
+   - Railway → Tu servicio → Debe estar "Active" (verde)
 
-# 2. Ver logs en tiempo real
-Railway → Deploy Logs
+2. **Ver logs en tiempo real**
+   - Railway → Deploy Logs
+   - Busca mensajes de error en rojo
 
-# 3. Verificar variables de entorno
-Railway → Variables → Verifica que todas estén configuradas
-
-# 4. Probar manualmente
-railway run python3 /scripts/commit_automator.py
-```
+3. **Verificar variables de entorno**
+   - Railway → Variables → Verifica que todas estén configuradas:
+     - `N8N_BASIC_AUTH_ACTIVE=true`
+     - `N8N_BASIC_AUTH_USER`
+     - `N8N_BASIC_AUTH_PASSWORD`
+     - `N8N_ENCRYPTION_KEY` (mínimo 32 caracteres)
 
 ---
 
 ## Errores de Despliegue
 
-### Error: "failed to build: config: not found"
+### Error: "Service crashed" o "Build failed"
 
-**Causa**: El directorio `config/` no está en GitHub.
-
-**Solución**:
-```bash
-# Verifica que existe
-dir config
-
-# Agregar a git
-git add config/
-git commit -m "Add config directory"
-git push
-```
-
-### Error: "apk: not found" o "apt-get: not found"
-
-**Causa**: Dockerfile usa el gestor de paquetes incorrecto.
-
-**Solución**: Ya está corregido en el Dockerfile actual (usa Alpine con `apk`).
-
-### Error: "command start not found"
-
-**Causa**: n8n no se está ejecutando correctamente.
-
-**Solución**: Verifica que el Dockerfile tenga:
-```dockerfile
-CMD ["n8n", "start"]
-```
-
----
-
-## Errores de Autenticación
-
-### Error: "Authentication failed" al hacer push
-
-**Causa**: Token de GitHub incorrecto o expirado.
+**Causa**: Variables de entorno faltantes o incorrectas.
 
 **Solución**:
-```bash
-# 1. Genera un nuevo token en GitHub
-# https://github.com/settings/tokens
+1. Ve a Railway → **Variables**
+2. Verifica que estas variables estén configuradas:
+   ```bash
+   N8N_BASIC_AUTH_ACTIVE=true
+   N8N_BASIC_AUTH_USER=admin
+   N8N_BASIC_AUTH_PASSWORD=TuPasswordSegura123!
+   N8N_ENCRYPTION_KEY=clave-aleatoria-larga-minimo-32-caracteres
+   ```
+3. Verifica que `N8N_ENCRYPTION_KEY` tenga al menos 32 caracteres
+4. Click en **"Redeploy"** después de corregir
 
-# 2. En el contenedor, reconfigura:
-railway run bash
-cd /repo
-git config credential.helper store
-git push # Usa el nuevo token como password
-```
+### Error: "Dockerfile not found"
 
-### Error: "Permission denied (publickey)"
-
-**Causa**: Intentando usar SSH sin configurar claves.
-
-**Solución**: Usa HTTPS en lugar de SSH:
-```bash
-git remote set-url origin https://github.com/USER/REPO.git
-```
-
----
-
-## Errores del Workflow
-
-### El workflow no se ejecuta automáticamente
-
-**Causa**: Workflow no está activado o cron mal configurado.
+**Causa**: El Dockerfile no está en el repositorio o Railway no lo detecta.
 
 **Solución**:
-1. En n8n, verifica que el toggle esté **verde**
-2. Verifica el Schedule Trigger:
- - Mode: Interval o Cron
- - Intervalo: 24 hours
-3. Prueba ejecutar manualmente: Click "Execute Workflow"
+1. Verifica que el `Dockerfile` esté en la raíz del repositorio
+2. Verifica que esté en GitHub (haz push si es necesario)
+3. En Railway → Settings → **Redeploy**
 
-### Error: "No hay repositorio remoto configurado"
+### Error: "Port already in use"
 
-**Causa**: El repo en `/repo` no está inicializado.
+**Causa**: Conflicto de puertos (poco común en Railway).
 
-**Solución**:
-```bash
-railway run bash
-
-cd /repo
-git init
-git config user.name "Tu Nombre"
-git config user.email "tu@email.com"
-git remote add origin https://github.com/USER/REPO.git
-```
-
-### Error: "No hay cambios para commitear"
-
-**Causa**: El script no pudo crear el archivo de datos.
-
-**Solución**:
-```bash
-# Verifica permisos
-railway run bash
-ls -la /repo
-
-# Debe mostrar que 'node' es el owner
-# Si no, ejecuta:
-chown -R node:node /repo
-```
+**Solución**: Railway maneja los puertos automáticamente. Si persiste:
+1. Railway → Settings → **Redeploy**
+2. Verifica que no haya otro servicio usando el mismo puerto
 
 ---
 
 ## Errores de Acceso
 
-### Error: "Application failed to respond"
+### Error 401: "Unauthorized" al acceder a n8n
 
-**Causa**: n8n no está escuchando en el puerto correcto.
-
-**Solución**:
-1. Verifica que el puerto en Railway → Networking sea **5678**
-2. Verifica los logs: `railway logs`
-3. Busca: `n8n ready on port 5678`
-
-### Error: "Cannot connect" o timeout
-
-**Causa**: Servicio no está corriendo o crasheó.
+**Causa**: Autenticación básica mal configurada.
 
 **Solución**:
-```bash
-# Ver estado
-railway status
+1. Verifica que `N8N_BASIC_AUTH_ACTIVE=true`
+2. Verifica que `N8N_BASIC_AUTH_USER` y `N8N_BASIC_AUTH_PASSWORD` estén configurados
+3. Usa las credenciales exactas que configuraste
+4. Verifica que no haya espacios extra en las variables
 
-# Ver logs
-railway logs
+### No puedo acceder a la URL de n8n
 
-# Si está crashed, redeploy
-railway up
-```
-
-### Error: Login no funciona en n8n
-
-**Causa**: Credenciales incorrectas.
+**Causa**: URL incorrecta o servicio no iniciado.
 
 **Solución**:
-```bash
-# Verifica las variables
-railway run env | grep N8N_BASIC_AUTH
+1. Ve a Railway → Settings → **Domains**
+2. Copia la URL correcta (ej: `https://xxx.railway.app`)
+3. Verifica que el servicio esté "Active"
+4. Espera unos minutos después del deploy inicial
 
-# Debe mostrar:
-# N8N_BASIC_AUTH_ACTIVE=true
-# N8N_BASIC_AUTH_USER=admin
-# N8N_BASIC_AUTH_PASSWORD=tu_password
-```
+### Error: "Connection refused"
+
+**Causa**: El servicio no está corriendo o el puerto está mal configurado.
+
+**Solución**:
+1. Verifica que el servicio esté "Active" en Railway
+2. Revisa los logs: Railway → Deploy Logs
+3. Verifica que n8n esté iniciando correctamente
+4. Si hay errores en los logs, corrígelos y haz redeploy
 
 ---
 
-## Errores de Python
+## Errores de Persistencia
 
-### Error: "requests module not found"
+### Los workflows se pierden después de redeploy
 
-**Causa**: Librería requests no está instalada.
-
-**Solución**: Ya está en el Dockerfile. Si persiste:
-```bash
-railway run bash
-pip3 install --break-system-packages requests
-```
-
-### Error: "Permission denied" al ejecutar script
-
-**Causa**: Scripts no tienen permisos de ejecución.
-
-**Solución**:
-```bash
-railway run bash
-chmod +x /scripts/*.py
-```
-
----
-
-## Errores de Pull Request
-
-### Error: "Token no tiene permisos"
-
-**Causa**: Token no tiene scope `repo`.
-
-**Solución**:
-1. Crea nuevo token con scope `repo` completo
-2. Actualiza en Railway → Variables → `GITHUB_TOKEN`
-
-### Error: "Repository not found"
-
-**Causa**: `github_repo_owner` o `github_repo_name` incorrectos.
-
-**Solución**: Verifica en `config/config.json`:
-```json
-{
- "github_repo_owner": "tu_usuario_exacto",
- "github_repo_name": "nombre_repo_exacto"
-}
-```
-
-### PRs se crean pero no se mergean
-
-**Causa**: Token sin permisos de merge o conflictos.
-
-**Solución**:
-1. Verifica permisos del token
-2. Revisa si hay conflictos en GitHub
-3. Aumenta tiempo de espera en `pr_automator.py`:
- ```python
- time.sleep(10) # En lugar de 5
- ```
-
----
-
-## Errores de Volumen
-
-### Workflows desaparecen después de redeploy
+**Síntomas**: Workflows desaparecen después de cada deploy.
 
 **Causa**: No hay volumen persistente configurado.
 
 **Solución**:
-1. Railway → Settings → Volumes
-2. Add Volume:
- - Mount Path: `/home/node/.n8n`
- - Size: 1 GB
+1. Ve a Railway → Settings → **Volumes**
+2. Verifica que exista un volumen montado en `/home/node/.n8n`
+3. Si no existe, agrégalo:
+   - Mount Path: `/home/node/.n8n`
+   - Size: `0.5 GB`
+4. Haz redeploy después de agregar el volumen
+5. Ver guía completa: [PERSISTENCIA.md](PERSISTENCIA.md)
 
-### Error: "No space left on device"
+### Error al guardar workflows: "Disk full" o similar
 
-**Causa**: Volumen lleno.
+**Causa**: El volumen está lleno.
 
 **Solución**:
-1. Aumenta el tamaño del volumen en Railway
-2. O limpia archivos innecesarios:
- ```bash
- railway run bash
- du -sh /home/node/.n8n/*
- # Elimina logs viejos si es necesario
- ```
+1. Conecta al contenedor: `railway run bash`
+2. Verifica espacio: `df -h /home/node/.n8n`
+3. Si está lleno:
+   - Exporta workflows antiguos desde n8n
+   - Elimina workflows que no uses
+   - O actualiza a un plan con más espacio
 
 ---
 
-## Errores de Configuración
+## Errores de n8n
 
-### Commits no aparecen en GitHub
+### El workflow no se ejecuta automáticamente
 
-**Causa**: Email en Git no coincide con GitHub.
+**Causa**: Workflow no está activado o configuración incorrecta.
 
 **Solución**:
-```bash
-# El email debe ser el mismo que en tu cuenta de GitHub
-git config user.email "tu-email-de-github@ejemplo.com"
-```
+1. En n8n, verifica que el workflow esté **activado** (toggle verde)
+2. Si usa Schedule Trigger, verifica:
+   - Que el trigger esté configurado correctamente
+   - Que la zona horaria sea correcta
+3. Prueba ejecutar manualmente: Click "Execute Workflow"
+4. Revisa los logs del workflow en n8n
 
-### Zona horaria incorrecta
+### Error: "Encryption key not set"
 
-**Causa**: Variables de entorno mal configuradas.
+**Causa**: `N8N_ENCRYPTION_KEY` no está configurado o es muy corto.
 
-**Solución**: En Railway → Variables:
-```bash
-GENERIC_TIMEZONE=America/Bogota
-TZ=America/Bogota
-```
+**Solución**:
+1. Ve a Railway → Variables
+2. Verifica que `N8N_ENCRYPTION_KEY` esté configurado
+3. Debe tener mínimo 32 caracteres
+4. Genera una nueva clave si es necesario
+5. Haz redeploy
 
-Lista de zonas: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+### Error al guardar credenciales
+
+**Causa**: Problema con la clave de encriptación o permisos.
+
+**Solución**:
+1. Verifica que `N8N_ENCRYPTION_KEY` esté configurado correctamente
+2. Verifica que el volumen tenga permisos correctos
+3. Conecta al contenedor: `railway run bash`
+4. Verifica permisos: `ls -la /home/node/.n8n`
 
 ---
 
-## Comandos Útiles de Diagnóstico
+## Problemas de Rendimiento
+
+### n8n es muy lento
+
+**Causa**: Recursos limitados o workflows complejos.
+
+**Solución**:
+1. Verifica el uso de recursos en Railway
+2. Optimiza tus workflows (menos nodos, menos datos)
+3. Considera actualizar a un plan con más recursos
+4. Revisa los logs para identificar cuellos de botella
+
+### El servicio se reinicia constantemente
+
+**Causa**: Crash por falta de memoria o errores.
+
+**Solución**:
+1. Revisa los logs: Railway → Deploy Logs
+2. Busca errores de memoria (OOM - Out of Memory)
+3. Simplifica tus workflows
+4. Verifica que todas las variables estén correctas
+
+---
+
+## Comandos Útiles para Diagnóstico
+
+### Ver logs en tiempo real:
 
 ```bash
-# Ver estado general
-railway status
-
-# Ver logs en tiempo real
 railway logs -f
+```
 
-# Ver variables de entorno
-railway variables
+### Conectar al contenedor:
 
-# Conectar al contenedor
+```bash
 railway run bash
+```
 
-# Dentro del contenedor:
-# - Ver configuración
-cat /config/config.json
+### Ver variables configuradas:
 
-# - Ver estado de git
-cd /repo && git status
+```bash
+railway variables
+```
 
-# - Ver logs de n8n
-ls -la /home/node/.n8n/
+### Verificar espacio en volumen:
 
-# - Probar script manualmente
-python3 /scripts/commit_automator.py
+```bash
+railway run bash
+df -h /home/node/.n8n
+```
 
-# - Ver procesos corriendo
+### Verificar que n8n está corriendo:
+
+```bash
+railway run bash
 ps aux | grep n8n
 ```
 
 ---
 
-## Solución Nuclear
+## Si Nada Funciona
 
-Si nada funciona, reconstruye desde cero:
+### Resetear completamente:
 
-```bash
-# 1. En Railway, elimina el proyecto
-Railway → Settings → Delete Project
+1. **Exporta tus workflows** desde n8n (si es posible)
+2. **Elimina el servicio** en Railway
+3. **Crea un nuevo servicio** desde el mismo repositorio
+4. **Configura las variables** nuevamente
+5. **Agrega el volumen** persistente
+6. **Importa tus workflows** exportados
 
-# 2. Limpia el repo local
-cd commitDiario
-rm -rf .git
+### Obtener ayuda adicional:
 
-# 3. Reinicia
-git init
-git add .
-git commit -m "Fresh start"
-git remote add origin https://github.com/USER/NEW_REPO.git
-git push -u origin main
+1. **Revisa la documentación oficial**:
+   - [Documentación de Railway](https://docs.railway.app/)
+   - [Documentación de n8n](https://docs.n8n.io/)
 
-# 4. Crea nuevo proyecto en Railway
-# 5. Sigue QUICK_START.md desde el inicio
-```
+2. **Revisa los logs completos**:
+   - Railway → Deploy Logs
+   - Busca mensajes de error específicos
 
----
-
-## Obtener Ayuda
-
-Si ninguna solución funciona:
-
-1. **Copia los logs completos**:
- ```bash
- railway logs > logs.txt
- ```
-
-2. **Verifica la configuración**:
- ```bash
- railway run cat /config/config.json > config_actual.txt
- ```
-
-3. **Abre un issue** en el repositorio con:
- - Descripción del problema
- - Logs relevantes
- - Configuración (sin tokens)
- - Pasos para reproducir
-
----
-
-## Recursos Adicionales
-
-- [Railway Documentation](https://docs.railway.app/)
-- [n8n Documentation](https://docs.n8n.io/)
-- [GitHub API Documentation](https://docs.github.com/en/rest)
-- [Python requests Documentation](https://requests.readthedocs.io/)
+3. **Abre un issue en GitHub**:
+   - Describe el problema detalladamente
+   - Incluye logs relevantes
+   - Menciona qué soluciones ya intentaste
 
 ---
 
 ## Checklist de Verificación
 
-Antes de reportar un problema, verifica:
+Si tienes problemas, verifica:
 
-- [ ] Servicio en Railway está "Active"
-- [ ] Todas las variables de entorno están configuradas
-- [ ] Volumen persistente está montado
-- [ ] Workflow está activado en n8n
-- [ ] Repositorio Git está configurado en `/repo`
-- [ ] Token de GitHub es válido (si usas PRs)
-- [ ] Email de Git coincide con GitHub
-- [ ] Probaste ejecutar el script manualmente
+- [ ] Servicio está "Active" en Railway
+- [ ] Todas las variables obligatorias están configuradas
+- [ ] `N8N_ENCRYPTION_KEY` tiene mínimo 32 caracteres
+- [ ] Volumen está montado en `/home/node/.n8n` (si usas persistencia)
+- [ ] Puedes acceder a la URL de Railway
+- [ ] Las credenciales de login son correctas
+- [ ] No hay errores en los logs de Railway
+- [ ] n8n está iniciando correctamente (visible en logs)
 
-Si todo está y sigue sin funcionar, es hora de pedir ayuda.
+---
+
+## Enlaces Útiles
+
+- [Guía de Despliegue](RAILWAY_DEPLOY.md)
+- [Guía de Persistencia](PERSISTENCIA.md)
+- [Documentación de Railway](https://docs.railway.app/)
+- [Documentación de n8n](https://docs.n8n.io/)
