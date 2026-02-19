@@ -4,7 +4,7 @@
 deploy:
   # Dónde desplegar: "railway" o "render"
   # Railway usa railway.json | Render usa render.yaml
-  target: railway
+  target: render
 
 app:
   name: n8n
