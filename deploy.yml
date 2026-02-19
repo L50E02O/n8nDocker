@@ -1,0 +1,30 @@
+# Configuración única de despliegue: elige plataforma y opciones comunes
+# Referencia: docs/RAILWAY_DEPLOY.md (Railway) | docs/RENDER_DEPLOY.md (Render)
+
+deploy:
+  # Dónde desplegar: "railway" o "render"
+  # Railway usa railway.json | Render usa render.yaml
+  target: railway
+
+app:
+  name: n8n
+
+# Variables de entorno (comunes). Los secretos se configuran en el dashboard de cada plataforma.
+env:
+  N8N_BASIC_AUTH_ACTIVE: "true"
+  N8N_LOG_LEVEL: info
+  GENERIC_TIMEZONE: America/Bogota
+  TZ: America/Bogota
+
+# Configurar en el dashboard (no poner valores aquí):
+# - N8N_BASIC_AUTH_USER
+# - N8N_BASIC_AUTH_PASSWORD
+# - N8N_ENCRYPTION_KEY
+# - WEBHOOK_URL (URL pública del servicio)
+
+# Persistencia de datos (workflows, credenciales)
+persistence:
+  mountPath: /home/node/.n8n
+  # Railway: tamaño en GB del volumen (ej. 0.5)
+  # Render: solo en plan de pago (ej. 1)
+  sizeGB: 0.5

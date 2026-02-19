@@ -1,12 +1,13 @@
-# n8nDocker - n8n en Railway
+# n8nDocker - n8n en Railway y Render
 
 <div align="center">
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Railway](https://img.shields.io/badge/deploy-railway-blueviolet.svg)
+![Render](https://img.shields.io/badge/deploy-render-46e3b7.svg)
 ![n8n](https://img.shields.io/badge/automation-n8n-orange.svg)
 
-**Despliega n8n en Railway de forma rápida y sencilla** 
+**Despliega n8n con Docker en Railway o Render** 
 
 [Inicio Rápido](#-inicio-rápido) • [Documentación](docs/) • [Licencia](#-licencia)
          
@@ -16,15 +17,15 @@
 
 ## Descripción
 
-Contenedor Docker optimizado para desplegar n8n en Railway. Incluye configuración lista para usar y documentación completa para el despliegue.
+Contenedor Docker basado en la **imagen oficial de n8n** ([Docker Hub](https://hub.docker.com/r/n8nio/n8n)) para desplegar n8n en **Railway** o **Render**. Un solo repositorio, dos plataformas.
 
 ### Características
 
-- **Contenedor Docker simple** - Basado en la imagen oficial de n8n
-- **Listo para Railway** - Configuración optimizada para Railway
-- **Plan Gratuito** - Funciona en el plan gratuito de Railway ($5 crédito/mes)
-- **Persistencia** - Configuración de volúmenes para mantener tus workflows
-- **Fácil Setup** - Despliegue en menos de 5 minutos
+- **Imagen oficial** - Basado en `n8nio/n8n` desde Docker Hub
+- **Railway y Render** - Mismo Dockerfile; `railway.json` y `render.yaml` listos
+- **Puerto automático** - Compatible con el `PORT` que inyecta Render
+- **Persistencia** - Volúmenes (Railway) o disco (Render plan de pago)
+- **Fácil setup** - Despliegue en minutos
 
 ---
 
@@ -35,33 +36,22 @@ Contenedor Docker optimizado para desplegar n8n en Railway. Incluye configuraci�
 - Cuenta de GitHub
 - Cuenta en [Railway](https://railway.app/) (gratis)
 
-### Despliegue en 3 Pasos
+### Elegir plataforma y desplegar
 
-```bash
-# 1. Clonar este repositorio
-git clone https://github.com/TU_USUARIO/n8nDocker.git
-cd n8nDocker
+1. **Configura dónde desplegar**: edita `deploy.yml` y pon `target: railway` o `target: render`.
+2. **Sube el repo a GitHub** y conecta el repo a la plataforma elegida:
+   - **Railway**: [railway.app](https://railway.app) → New Project → Deploy from GitHub repo (usa `railway.json`).
+   - **Render**: [dashboard.render.com](https://dashboard.render.com) → New → Blueprint, elige este repo (usa `render.yaml`).
 
-# 2. Subir a tu GitHub
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/TU_USUARIO/n8nDocker.git
-git push -u origin main
-
-# 3. Desplegar en Railway
-# Ve a railway.app → New Project → Deploy from GitHub repo
-```
-
-**Guía completa**: [docs/RAILWAY_DEPLOY.md](docs/RAILWAY_DEPLOY.md)
+Guías: [Railway](docs/RAILWAY_DEPLOY.md) · [Render](docs/RENDER_DEPLOY.md)
 
 ---
 
 ## Configuración
 
-### Variables de Entorno en Railway
+### Variables de Entorno (Railway y Render)
 
-Configura estas variables en Railway → Variables:
+Configura en **Railway** → Variables o **Render** → Environment:
 
 ```bash
 # Autenticación básica (OBLIGATORIO)
@@ -72,6 +62,10 @@ N8N_BASIC_AUTH_PASSWORD=TuPasswordSegura123!
 # Clave de encriptación (OBLIGATORIO)
 N8N_ENCRYPTION_KEY=genera-clave-aleatoria-larga-aqui-minimo-32-caracteres
 
+# URL pública (recomendado para webhooks)
+# Railway: https://tu-app.railway.app  |  Render: https://tu-app.onrender.com
+WEBHOOK_URL=https://tu-url-final
+
 # Zona horaria
 GENERIC_TIMEZONE=America/Bogota
 TZ=America/Bogota
@@ -80,20 +74,10 @@ TZ=America/Bogota
 N8N_LOG_LEVEL=info
 ```
 
-### Volumen Persistente (Recomendado)
+### Persistencia
 
-Para mantener tus workflows entre deploys:
-
-1. Railway → Tu servicio → **Settings** → **Volumes**
-2. Click **"Add Volume"**
-3. Configuración:
-   ```
-   Mount Path: /home/node/.n8n
-   Size: 0.5 GB
-   ```
-4. Click **"Add"**
-
-**Guía completa**: [docs/PERSISTENCIA.md](docs/PERSISTENCIA.md)
+- **Railway**: Settings → **Volumes** → Add Volume → Mount Path: `/home/node/.n8n`, Size: 0.5 GB. Ver [docs/PERSISTENCIA.md](docs/PERSISTENCIA.md).
+- **Render**: En plan de pago, el `render.yaml` ya define un disco en `/home/node/.n8n`. En plan free no hay disco persistente.
 
 ---
 
@@ -101,8 +85,9 @@ Para mantener tus workflows entre deploys:
 
 | Documento | Descripción |
 |-----------|-------------|
-| [Despliegue en Railway](docs/RAILWAY_DEPLOY.md) | Guía paso a paso para desplegar en Railway |
-| [Persistencia de Datos](docs/PERSISTENCIA.md) | Configuración de volúmenes para mantener workflows |
+| [Despliegue en Railway](docs/RAILWAY_DEPLOY.md) | Guía paso a paso para Railway |
+| [Despliegue en Render](docs/RENDER_DEPLOY.md) | Guía paso a paso para Render |
+| [Persistencia de Datos](docs/PERSISTENCIA.md) | Volúmenes y discos para mantener workflows |
 | [Solución de Problemas](docs/TROUBLESHOOTING.md) | Errores comunes y soluciones |
 
 ---
@@ -111,12 +96,15 @@ Para mantener tus workflows entre deploys:
 
 ```
 n8nDocker/
-├── Dockerfile          # Configuración de Docker
-├── railway.json        # Configuración de Railway
-├── README.md           # Este archivo
-├── LICENSE             # Licencia MIT
-└── docs/               # Documentación
+├── deploy.yml      # Configuración única: target (railway | render), env, persistencia
+├── Dockerfile      # Imagen oficial n8nio/n8n
+├── railway.json    # Usado cuando deploy.yml → target: railway
+├── render.yaml    # Usado cuando deploy.yml → target: render
+├── README.md
+├── LICENSE
+└── docs/
     ├── RAILWAY_DEPLOY.md
+    ├── RENDER_DEPLOY.md
     ├── PERSISTENCIA.md
     └── TROUBLESHOOTING.md
 ```
@@ -125,9 +113,9 @@ n8nDocker/
 
 ## Tecnologías
 
-- **[n8n](https://n8n.io/)** - Plataforma de automatización de workflows
+- **[n8n](https://n8n.io/)** - Automatización de workflows ([imagen oficial](https://hub.docker.com/r/n8nio/n8n))
 - **[Docker](https://www.docker.com/)** - Containerización
-- **[Railway](https://railway.app/)** - Plataforma de hosting
+- **[Railway](https://railway.app/)** y **[Render](https://render.com/)** - Hosting
 
 ---
 
@@ -136,9 +124,13 @@ n8nDocker/
 ### Railway (Plan Gratuito)
 
 - **Crédito mensual**: $5 USD
-- **Uso estimado**: ~$1-2/mes
-- **Volumen 0.5 GB**: ~$0.075/mes
-- **Resultado**: **Completamente gratis** dentro del crédito mensual
+- **Uso estimado**: ~$1-2/mes; volumen 0.5 GB ~$0.075/mes
+- **Resultado**: Dentro del crédito gratuito
+
+### Render
+
+- **Plan free**: Sin disco persistente; servicio se apaga por inactividad.
+- **Plan de pago**: Disco persistente vía `render.yaml`; ver [docs/RENDER_DEPLOY.md](docs/RENDER_DEPLOY.md).
 
 ---
 

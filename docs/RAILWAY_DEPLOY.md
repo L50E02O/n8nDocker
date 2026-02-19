@@ -1,6 +1,8 @@
 # Guía de Despliegue de n8n en Railway
 
-Esta guía te muestra cómo desplegar n8n en Railway de forma rápida y sencilla.
+Usa esta guía cuando en **deploy.yml** tengas `target: railway`.
+
+Despliegue de n8n en Railway paso a paso.
 
 ## Requisitos Previos
 
