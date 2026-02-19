@@ -10,9 +10,11 @@ app:
   name: n8n
 
 # Variables de entorno (comunes). Los secretos se configuran en el dashboard de cada plataforma.
+# N8N_PORT: 10000 en Render (por defecto PORT=10000); en Railway usar 5678 si aplica.
 env:
   N8N_BASIC_AUTH_ACTIVE: "true"
   N8N_LOG_LEVEL: info
+  N8N_PORT: "10000"
   GENERIC_TIMEZONE: America/Bogota
   TZ: America/Bogota
 

@@ -68,8 +68,9 @@ Si usas plan free y quieres persistencia, considera desplegar en **Railway** (ve
 | `GENERIC_TIMEZONE` | No | Zona horaria (ej: `America/Bogota`) |
 | `TZ` | No | Misma zona para el sistema |
 | `N8N_LOG_LEVEL` | No | `info` o `debug` |
+| `N8N_PORT` | No | Puerto de escucha; en Render usar `10000` (por defecto `PORT=10000`). El Dockerfile ya lo define. |
 
-Render inyecta la variable `PORT`; el contenedor la usa automáticamente para exponer n8n en el puerto correcto.
+Render inyecta `PORT=10000`. El Dockerfile define `N8N_PORT=10000` para que n8n escuche en ese puerto (sin usar shell en el arranque).
 
 ---
 
